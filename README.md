@@ -4,6 +4,12 @@
 ![Pypi](https://img.shields.io/pypi/v/horus-oag-sdk)
 ![Python Versions](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue)
 
+# Install
+
+```bash
+> pip install horus-oag-sdk
+```  
+
 # License
 
 Dictionary Search is Open Source and available under the [AGPL 3](https://github.com/horus4apis/horus-oag-sdk/blob/main/LICENSE).
