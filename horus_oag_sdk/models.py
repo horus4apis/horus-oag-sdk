@@ -10,6 +10,17 @@ class HorusOAGEngineRunningConfig:
 
 
 @dataclass
+class ExtensionInputParams:
+    name: str
+    type: type
+    default: object = None
+    required: bool = False
+
+@dataclass
+class ExtensionDependencies:
+    step: Dict[str, List[str]]
+
+@dataclass
 class Extension:
     name: str
     version: str
@@ -17,8 +28,17 @@ class Extension:
     module_object: object
     package_name: str
     execution_steps: Dict[str, str]
+    input_params: List[ExtensionInputParams | dict] = field(default_factory=list)
+    dependencies: Dict[str, list] = field(default_factory=dict)
     execution_steps_callables: Dict[str, Callable] = field(default_factory=dict)
-    dependencies: Dict[str, list] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.input_params and type(self.input_params) is list:
+            for p in self.input_params:
+                if type(p) is not dict:
+                    raise TypeError(f"Input params must be a list of dictionaries, got {type(p)}")
+
+            self.input_params = [ExtensionInputParams(**v) for v in self.input_params]
 
 @dataclass
 class HorusConfig:
