@@ -10,25 +10,21 @@ class HorusOAGEngineRunningConfig:
 
 
 @dataclass
-class ExtensionInputParams:
+class PluginInputParams:
     name: str
     type: type
     default: object = None
     required: bool = False
 
 @dataclass
-class ExtensionDependencies:
-    step: Dict[str, List[str]]
-
-@dataclass
-class Extension:
+class Plugin:
     name: str
     version: str
     description: str
     module_object: object
     package_name: str
     execution_steps: Dict[str, str]
-    input_params: List[ExtensionInputParams | dict] = field(default_factory=list)
+    input_params: List[PluginInputParams | dict] = field(default_factory=list)
     dependencies: Dict[str, list] = field(default_factory=dict)
     execution_steps_callables: Dict[str, Callable] = field(default_factory=dict)
 
@@ -38,31 +34,31 @@ class Extension:
                 if type(p) is not dict:
                     raise TypeError(f"Input params must be a list of dictionaries, got {type(p)}")
 
-            self.input_params = [ExtensionInputParams(**v) for v in self.input_params]
+            self.input_params = [PluginInputParams(**v) for v in self.input_params]
 
 @dataclass
 class HorusConfig:
-    extensions: Dict[str, Extension] = field(default_factory=dict)
+    plugins: Dict[str, Plugin] = field(default_factory=dict)
     running_config: HorusOAGEngineRunningConfig = field(default_factory=HorusOAGEngineRunningConfig)
 
-    def extensions_by_steps(self) -> Dict[str, List[Extension]]:
+    def plugins_by_steps(self) -> Dict[str, List[Plugin]]:
         """
-        Returns a dictionary of extensions by steps.
+        Returns a dictionary of plugins by steps.
         """
-        extensions_by_steps = defaultdict(list)
+        plugins_by_steps = defaultdict(list)
 
-        for extension in self.extensions.values():
-            for step, _ in extension.execution_steps.items():
+        for plugin in self.plugins.values():
+            for step, _ in plugin.execution_steps.items():
                 if step not in self.valid_steps():
                     raise ValueError(f"Invalid step {step}")
 
-                extensions_by_steps[step].append(extension)
+                plugins_by_steps[step].append(plugin)
 
-        return extensions_by_steps
+        return plugins_by_steps
 
     def valid_steps(self) -> List[str]:
         return EXECUTION_STEPS
 
 current_config = HorusConfig()
 
-__all__ = ("current_config", "HorusConfig", "Extension", "HorusOAGEngineRunningConfig")
+__all__ = ("current_config", "HorusConfig", "Plugin", "HorusOAGEngineRunningConfig")

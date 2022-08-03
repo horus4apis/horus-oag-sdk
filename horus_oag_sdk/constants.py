@@ -4,6 +4,7 @@ class ExecutionSteps(Enum):
     """
     Enum for the execution steps.
     """
+    INPUT = "input"
     AGGREGATE = "aggregate"
     MODIFY = "modify"
     DROP = "drop"
@@ -11,6 +12,7 @@ class ExecutionSteps(Enum):
 
 
 EXECUTION_STEPS = [
+    "input",
     "aggregation",
     "modify",
     "drop",
