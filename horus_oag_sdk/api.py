@@ -1,23 +1,38 @@
 from __future__ import annotations
 
-from typing import List, Dict, Union
+import sys
+import hashlib
+
+from abc import ABCMeta, abstractmethod
+
+from typing import List, Dict, Union, NewType, Set, Iterable
 from dataclasses import dataclass, field
 
+def do_hash(data: Union[str, bytes]) -> str:
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+
+    return hashlib.sha256(data).hexdigest()
+
+class Hashable(metaclass=ABCMeta):
+
+    @abstractmethod
+    def hash(self) -> str:
+        raise NotImplementedError()
 
 @dataclass
-class Param:
+class Param(Hashable):
     type: str
     format: str
+    regex: str = "*"
     description: str = ""
 
     _meta: dict = field(default_factory=dict)
 
-
 @dataclass
 class ParamInt(Param):
-    minimum: int = -65535
-    maximum: int = 65535
-    ...
+    minimum: int = -sys.maxsize
+    maximum: int = sys.maxsize
 
 
 @dataclass
@@ -35,8 +50,14 @@ class ParamString(Param):
     ...
 
 
+# InputType: NewType("InputType", ParamInt | ParamBoolean | ParamString | ParamFloat)
 InputType: ParamInt | ParamBoolean | ParamString | ParamFloat
 
+# Schema: NewType("Schema", Union[
+#     Dict[str, InputType | Param],
+#     List[InputType | Param],
+#     InputType | Param
+# ])
 Schema: Union[
     Dict[str, InputType | Param],
     List[InputType | Param],
@@ -45,7 +66,7 @@ Schema: Union[
 
 
 @dataclass
-class Body:
+class Body(Hashable):
     params: Union[
         Dict[str, InputType | Param],
         List[InputType | Param],
@@ -54,18 +75,34 @@ class Body:
 
     _meta: dict = field(default_factory=dict)
 
+    def hash(self) -> str:
+        return "body hash"
 
 @dataclass
-class Response:
+class Response(Hashable):
     status_code: int
     body: Schema = None
     headers: List[Dict[str, InputType]] = field(default_factory=list)
 
     _meta: dict = field(default_factory=dict)
 
+    def hash(self) -> str:
+        if self.body:
+            body_hash = self.body.hash()
+        else:
+            body_hash = ""
+
+        if self.headers:
+            headers_hash = do_hash(str(self.headers))
+        else:
+            headers_hash = ""
+
+        return do_hash(
+            f"{self.status_code}#{body_hash}#{headers_hash}"
+        )
 
 @dataclass
-class Request:
+class Request(Hashable):
     response: Response
     body: Schema = None
 
@@ -74,76 +111,71 @@ class Request:
 
     _meta: dict = field(default_factory=dict)
 
+    def hash(self) -> str:
+        if self.body:
+            body_hash = self.body.hash()
+        else:
+            body_hash = ""
+
+        if self.headers:
+            headers_hash = do_hash(str(self.headers))
+        else:
+            headers_hash = ""
+
+        if self.query_params:
+            query_params_hash = do_hash(str(self.query_params))
+        else:
+            query_params_hash = ""
+
+        return do_hash(f"{body_hash}#{headers_hash}#{query_params_hash}#{self.response.hash()}")
+
+    def __eq__(self, other):
+        return self.hash() == other.hash()
 
 @dataclass
-class Path:
+class Path(Hashable):
     path: str
     method: str
     request: List[Request]
 
     _meta: dict = field(default_factory=dict)
 
+    def find_request(self, request: Request) -> Request:
+        for req in self.request:
+            if request == req:
+                return req
+
+    def hash(self) -> str:
+        return do_hash(f"{self.path}_{self.method}")
 
 @dataclass
-class API:
-    host: str
+class API(Hashable):
+    hosts: Set[str] = field(default_factory=set)
     paths: list[Path] = field(default_factory=list)
-    extensions: dict = field(default_factory=dict)
 
     _meta: dict = field(default_factory=dict)
 
+    def add_host(self, host: str | Iterable[str]):
+        if hasattr(host, "__iter__"):
+            self.hosts.update(host)
+        else:
+            self.hosts.add(host)
 
-"""
-API EXAMPLE:
+    def add_path(self, path: Path):
+        self.paths.append(path)
 
-/api/v1/users/{userId}/books/{bookId} GET [1]
-    /api/v1/users/{userId}/books/{bookId}?q=juan
-        R1
-    /api/v1/users/{userId}/books/{bookId}?q=bolsos
-        R2
-    /api/v1/users/{userId}/books/{bookId}?q=zapatos
-        R3
+    def find_path(self, path: str, method: str) -> Path:
+        for p in self.paths:
+            if p.path == path and p.method == method:
+                return p
 
-/api/v1/users/{userId}/books/{bookId} POST [2]
-"""
+        return None
 
-"""
-INPUT (STEP 1):
-   input:
-   - oas v3 (seed or baseline) 
-   - n http calls (n>0)
-   - metadata stored in the db used by the plugins (optional)
+    def hash(self) -> str:
+        return do_hash(f"{self.hosts}#{self.paths}")
 
-   methods:
-    - from http to api (transform response, request body to schema)
-    - from oas_v3_0 to api (transform all but schemas)
+current_api = API()
 
- WORK (STEP 2):
-    ...
-
- OUTPUT (STEP 3):
-  output:
-  - from api to oasV3 + metadata  
-"""
-
-"""
-    (step 2.1):
-    for path in API:
-        for method in path:
-            p: Tuple[str, Request]
-
-            similares = get_similares(p) # obtener todas las request que son iguales
-
-
-    methods (step 2.2):
-     add examples
-     add regex
-
-    methods (step 3):
-    - from api to oasV3 + metadata
-            for similar in similares:
-                new_p = merge(similar) # mergea todas las request iguales
-"""
-
-__all__ = ("API", "Path", "Request", "Response", "Body", "Schema", "Param",
-           "ParamInt", "ParamFloat", "ParamBoolean", "ParamString")
+__all__ = ("API", "Path", "Request", "Response", "Body", "Param",
+           "ParamInt", "ParamFloat", "ParamBoolean", "ParamString",
+           "current_api")
