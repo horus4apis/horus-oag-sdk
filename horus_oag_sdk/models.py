@@ -6,7 +6,7 @@ from .constants import EXECUTION_STEPS
 
 @dataclass
 class HorusOAGEngineRunningConfig:
-    ...
+    debug: bool = False
 
 
 @dataclass
