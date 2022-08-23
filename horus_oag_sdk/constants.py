@@ -5,7 +5,7 @@ class ExecutionSteps(Enum):
     Enum for the execution steps.
     """
     INPUT = "input"
-    AGGREGATE = "aggregate"
+    AGGREGATE = "aggregation"
     MODIFY = "modify"
     DROP = "drop"
     GENERATION = "generation"
