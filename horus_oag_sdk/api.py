@@ -5,8 +5,8 @@ import hashlib
 
 from abc import ABCMeta, abstractmethod
 
-from typing import List, Dict, Union, NewType, Set, Iterable
 from dataclasses import dataclass, field
+from typing import List, Dict, Union, Set, Iterable
 
 def do_hash(data: Union[str, bytes]) -> str:
     if isinstance(data, str):
@@ -34,7 +34,6 @@ class ParamInt(Param):
     minimum: int = -sys.maxsize
     maximum: int = sys.maxsize
 
-
 @dataclass
 class ParamFloat(Param):
     ...
@@ -47,36 +46,42 @@ class ParamBoolean(Param):
 
 @dataclass
 class ParamString(Param):
-    ...
+    pattern: str = '*'
+    min_length: int = 0
+    max_length: int = sys.maxsize
 
-
-# InputType: NewType("InputType", ParamInt | ParamBoolean | ParamString | ParamFloat)
 InputType: ParamInt | ParamBoolean | ParamString | ParamFloat
 
-# Schema: NewType("Schema", Union[
-#     Dict[str, InputType | Param],
-#     List[InputType | Param],
-#     InputType | Param
-# ])
 Schema: Union[
     Dict[str, InputType | Param],
     List[InputType | Param],
     InputType | Param
 ]
 
+@dataclass
+class BodyTypes:
+    JSON = "ASDF"
 
 @dataclass
 class Body(Hashable):
-    params: Union[
-        Dict[str, InputType | Param],
-        List[InputType | Param],
-        InputType | Param
-    ]
+    params: Schema
+    content_type: str # extract from bodyTypes
 
     _meta: dict = field(default_factory=dict)
 
     def hash(self) -> str:
         return "body hash"
+
+
+@dataclass
+class Parameter:
+    name: str
+    description: str = ""
+
+    param_type: str = None
+    param_constrains: InputType = None
+
+    _meta: dict = field(default_factory=dict)
 
 @dataclass
 class Response(Hashable):
@@ -140,10 +145,10 @@ class Path(Hashable):
 
     _meta: dict = field(default_factory=dict)
 
-    def find_request(self, request: Request) -> Request:
-        for req in self.request:
-            if request == req:
-                return req
+    # def find_request(self, request: Request) -> Request:
+    #     for req in self.request:
+    #         if request == req:
+    #             return req
 
     def hash(self) -> str:
         return do_hash(f"{self.path}_{self.method}")
@@ -164,12 +169,12 @@ class API(Hashable):
     def add_path(self, path: Path):
         self.paths.append(path)
 
-    def find_path(self, path: str, method: str) -> Path:
-        for p in self.paths:
-            if p.path == path and p.method == method:
-                return p
-
-        return None
+    # def find_path(self, path: str, method: str) -> Path:
+    #     for p in self.paths:
+    #         if p.path == path and p.method == method:
+    #             return p
+    #
+    #     return None
 
     def hash(self) -> str:
         return do_hash(f"{self.hosts}#{self.paths}")
