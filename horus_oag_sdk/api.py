@@ -171,4 +171,4 @@ current_api = API()
 
 __all__ = ("API", "Path", "Request", "Response", "Body", "Param",
            "ParamInt", "ParamFloat", "ParamBoolean", "ParamString",
-           "current_api")
+           "current_api", "Parameter")
