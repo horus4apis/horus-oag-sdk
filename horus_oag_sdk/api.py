@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import hashlib
 
+from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
 
 from dataclasses import dataclass, field
@@ -144,11 +145,6 @@ class Path(Hashable):
 
     _meta: dict = field(default_factory=dict)
 
-    # def find_request(self, request: Request) -> Request:
-    #     for req in self.request:
-    #         if request == req:
-    #             return req
-
     def hash(self) -> str:
         return do_hash(f"{self.path}_{self.method}")
 
@@ -167,13 +163,6 @@ class API(Hashable):
 
     def add_path(self, path: Path):
         self.paths.append(path)
-
-    # def find_path(self, path: str, method: str) -> Path:
-    #     for p in self.paths:
-    #         if p.path == path and p.method == method:
-    #             return p
-    #
-    #     return None
 
     def hash(self) -> str:
         return do_hash(f"{self.hosts}#{self.paths}")
