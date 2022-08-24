@@ -23,8 +23,6 @@ class Hashable(metaclass=ABCMeta):
 @dataclass
 class Param(Hashable):
     type: str
-    format: str
-    regex: str = "*"
     description: str = ""
 
     _meta: dict = field(default_factory=dict)
@@ -36,8 +34,8 @@ class ParamInt(Param):
 
 @dataclass
 class ParamFloat(Param):
-    ...
-
+    minimum: int = -float(sys.maxsize)
+    maximum: int = float(sys.maxsize)
 
 @dataclass
 class ParamBoolean(Param):
@@ -53,9 +51,10 @@ class ParamString(Param):
 InputType: ParamInt | ParamBoolean | ParamString | ParamFloat
 
 Schema: Union[
-    Dict[str, InputType | Param],
-    List[InputType | Param],
-    InputType | Param
+    Dict[str, Schema],
+    List[Schema],
+    Schema,
+    InputType
 ]
 
 @dataclass
@@ -86,8 +85,8 @@ class Parameter:
 @dataclass
 class Response(Hashable):
     status_code: int
-    body: Schema = None
-    headers: List[Dict[str, InputType]] = field(default_factory=list)
+    body: Body = None
+    headers: List[Dict[str, Parameter]] = field(default_factory=list)
 
     _meta: dict = field(default_factory=dict)
 
@@ -109,10 +108,10 @@ class Response(Hashable):
 @dataclass
 class Request(Hashable):
     response: Response
-    body: Schema = None
+    body: Body = None
 
-    headers: Dict[str, InputType] = field(default_factory=dict)
-    query_params: Dict[str, InputType] = field(default_factory=dict)
+    headers: Dict[str, Parameter] = field(default_factory=OrderedDict)
+    query_params: Dict[str, Parameter] = field(default_factory=OrderedDict)
 
     _meta: dict = field(default_factory=dict)
 
