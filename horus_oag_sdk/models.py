@@ -5,11 +5,6 @@ from dataclasses import dataclass, field
 from .constants import EXECUTION_STEPS
 
 @dataclass
-class HorusOAGEngineRunningConfig:
-    debug: bool = False
-
-
-@dataclass
 class PluginInputParams:
     name: str
     type: type
@@ -39,7 +34,6 @@ class Plugin:
 @dataclass
 class HorusConfig:
     plugins: Dict[str, Plugin] = field(default_factory=dict)
-    running_config: HorusOAGEngineRunningConfig = field(default_factory=HorusOAGEngineRunningConfig)
 
     def plugins_by_steps(self) -> Dict[str, List[Plugin]]:
         """
@@ -61,4 +55,4 @@ class HorusConfig:
 
 current_config = HorusConfig()
 
-__all__ = ("current_config", "HorusConfig", "Plugin", "HorusOAGEngineRunningConfig")
+__all__ = ("current_config", "HorusConfig", "Plugin", )
