@@ -28,6 +28,9 @@ class Param(Hashable):
 
     _meta: dict = field(default_factory=dict)
 
+    def hash(self) -> str:
+        return "body hash"
+
 @dataclass
 class ParamInt(Param):
     minimum: int = -sys.maxsize
@@ -74,7 +77,7 @@ class Body(Hashable):
 
 
 @dataclass
-class Parameter:
+class Parameter(Hashable):
     name: str
     description: str = ""
 
@@ -82,6 +85,9 @@ class Parameter:
     param_constrains: InputType = None
 
     _meta: dict = field(default_factory=dict)
+
+    def hash(self) -> str:
+        return "body hash"
 
 @dataclass
 class Response(Hashable):
@@ -171,4 +177,4 @@ current_api = API()
 
 __all__ = ("API", "Path", "Request", "Response", "Body", "Param",
            "ParamInt", "ParamFloat", "ParamBoolean", "ParamString",
-           "current_api")
+           "current_api", "Parameter")
