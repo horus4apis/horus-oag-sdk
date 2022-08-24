@@ -114,7 +114,7 @@ class Response(Hashable):
 
 @dataclass
 class Request(Hashable):
-    response: Response
+    response: Response = None
     body: Body = None
 
     headers: Dict[str, Parameter] = field(default_factory=OrderedDict)
@@ -146,9 +146,8 @@ class Request(Hashable):
 @dataclass
 class Path(Hashable):
     path: str
-    method: str
-    request: List[Request]
-
+    method: str = None
+    request: List[Request] = field(default_factory=list)
     _meta: dict = field(default_factory=dict)
 
     def hash(self) -> str:
