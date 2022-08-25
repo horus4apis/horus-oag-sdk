@@ -1,20 +1,20 @@
 from enum import Enum
 
-class ExecutionSteps(Enum):
+class ExecutionSteps:
     """
     Enum for the execution steps.
     """
     INPUT = "input"
-    AGGREGATE = "aggregation"
+    AGGREGATION = "aggregation"
     MODIFY = "modify"
     DROP = "drop"
     GENERATION = "generation"
 
 
 EXECUTION_STEPS = [
-    "input",
-    "aggregation",
-    "modify",
-    "drop",
-    "generation"
+    ExecutionSteps.INPUT,
+    ExecutionSteps.AGGREGATION,
+    ExecutionSteps.MODIFY,
+    ExecutionSteps.DROP,
+    ExecutionSteps.GENERATION
 ]
