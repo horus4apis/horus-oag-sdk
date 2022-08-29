@@ -21,6 +21,8 @@ class Plugin:
     execution_steps: Dict[str, str]
     input_params: List[PluginInputParams | dict] = field(default_factory=list)
     dependencies: Dict[str, list] = field(default_factory=dict)
+    bootstrap_function: str = None
+    bootstrap_function_callable: Callable = None
     execution_steps_callables: Dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self):
