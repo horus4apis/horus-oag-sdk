@@ -4,7 +4,6 @@ class OasMergerException(Exception):
 
 
 def merge_schemas(sch1: dict, sch2: dict) -> dict: # the merge will be in sch1
-    ## TODO add cmp for null types
 
     not_null = True
     if not 'type' in sch1 and not 'type' in sch2:
@@ -34,7 +33,9 @@ def merge_schemas(sch1: dict, sch2: dict) -> dict: # the merge will be in sch1
 
 
         elif sch1['type'] == 'array':
-            ...
+            items_1 = sch1.get('items', {})
+            items_2 = sch2.get('items', {})
+            merge_schemas(items_1, items_2)
         elif sch1['type'] == 'string':
             # this will cause a merge in the db sample lists
             ...
@@ -47,3 +48,4 @@ def merge_schemas(sch1: dict, sch2: dict) -> dict: # the merge will be in sch1
     return sch1
 
 #TODO: merge required object list
+#TODO: merge extensions
