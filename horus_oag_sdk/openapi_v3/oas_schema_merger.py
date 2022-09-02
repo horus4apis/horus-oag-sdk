@@ -1,51 +1,57 @@
 
+from .oas_schema_searcher import search_reference_content, replace_all_references
+
+
 class OasMergerException(Exception):
     ...
 
 
-def merge_schemas(sch1: dict, sch2: dict) -> dict: # the merge will be in sch1
+def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
+    if '$ref' in base_schema:
+        base_schema = search_reference_content(oas, base_schema['$ref'])
+
+    if '$ref' in merged_schema:
+        merged_schema = search_reference_content(oas, merged_schema['$ref'])
 
     not_null = True
-    if not 'type' in sch1 and not 'type' in sch2:
+    if not 'type' in base_schema and not 'type' in merged_schema:
         not_null = False
-    elif not 'type' in sch1:
-        sch1['type'] = sch2['type']
-    elif not 'type' in sch2:
-        sch2['type'] = sch1['type']
+    elif not 'type' in base_schema:
+        base_schema['type'] = merged_schema['type']
+    elif not 'type' in merged_schema:
+        merged_schema['type'] = base_schema['type']
 
-    if sch1['type'] != sch2['type']:
-        raise OasMergerException('Cannot merge schemas with different types')
+    if base_schema['type'] != merged_schema['type']:
+        raise OasMergerException(f"Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
 
     if not_null:
-        if sch1['type'] == 'object':
+        if base_schema['type'] == 'object':
 
             # create properties object if not exists
-            if 'properties' not in sch1:
-                sch1['properties'] = {}
-            if 'properties' not in sch2:
-                sch2['properties'] = {}
+            if 'properties' not in base_schema:
+                base_schema['properties'] = {}
+            if 'properties' not in merged_schema:
+                merged_schema['properties'] = {}
 
-            for key, value in sch2['properties'].items():
-                if key not in sch1['properties']:
-                    sch1['properties'][key] = value
+            for key, value in merged_schema['properties'].items():
+                if key not in base_schema['properties']:
+                    base_schema['properties'][key] = value
                 else:
-                    merge_schemas(sch1['properties'][key], sch2['properties'][key])
+                    merge_schemas(base_schema['properties'][key], merged_schema['properties'][key], oas)
 
 
-        elif sch1['type'] == 'array':
-            items_1 = sch1.get('items', {})
-            items_2 = sch2.get('items', {})
-            merge_schemas(items_1, items_2)
-        elif sch1['type'] == 'string':
-            # this will cause a merge in the db sample lists
-            ...
-
+        elif base_schema['type'] == 'array':
+            items_1 = base_schema.get('items', {})
+            items_2 = merged_schema.get('items', {})
+            merge_schemas(items_1, items_2, oas)
 
     # merge nullable property
-    if 'nullable' in sch2:
-        sch1['nullable'] = True
+    if 'nullable' in merged_schema:
+        base_schema['nullable'] = True
 
-    return sch1
+    return base_schema
 
-#TODO: merge required object list
-#TODO: merge extensions
+#TODO list:
+    # merge required object list
+    # preserve non generated schema names
+    # merge extensions

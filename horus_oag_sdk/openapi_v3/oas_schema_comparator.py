@@ -31,7 +31,15 @@ def same_schema(sch1: dict, sch2: dict) -> bool:
             return False
 
     elif sch1['type'] == 'string':
-        # TODO: use REGEX to decide if they are the same
-        return True
+        pattern_1 = sch1.get('pattern', None)
+        pattern_2 = sch2.get('pattern', None)
+
+        if not pattern_1 or not pattern_2:
+            return False
+
+        if pattern_1 == pattern_2:
+            return True
+        else:
+            return False
 
     return True
