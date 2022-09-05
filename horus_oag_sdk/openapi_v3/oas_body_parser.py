@@ -1,6 +1,5 @@
 from powerful_pipes import read_json, write_to_stderr
 from urllib.parse import parse_qsl
-from requests_toolbelt.multipart import decoder
 
 class OasParserException(Exception):
     ...
@@ -48,8 +47,6 @@ def parse_json_body(raw) -> dict:
         if raw:
             # TODO: provisional, an array can have different schemas in different positions
             schema['items'] = parse_json_body(raw[0])
-        else:
-            schema['items'] = {}
     else:
         schema['type'] = parse_base_body(raw)
 
