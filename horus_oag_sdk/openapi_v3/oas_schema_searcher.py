@@ -27,7 +27,7 @@ def replace_all_references(oas_input: dict, base_ref: str, new_ref: str):
 
 
 def convert_ref_to_jsonptr(ref: str) -> str:
-    return '$' + ref.replace('#', '').replace('/', '.')
+    return f"${ref.replace('#', '').replace('/', '.')}"
 
 
 def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
@@ -36,7 +36,8 @@ def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
         position = json_path_expr.find(oas_input)
 
         for sample_key, sample_value in value.items():
-            position[0].value[sample_key] = sample_value
+
+            position[0].value[sample_key] = f"\"{sample_value}\""
 
     except Exception as e:
         print(f"Error finding json path {jsonp}")
