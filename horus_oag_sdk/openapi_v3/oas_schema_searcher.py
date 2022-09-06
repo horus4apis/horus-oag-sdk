@@ -26,6 +26,10 @@ def replace_all_references(oas_input: dict, base_ref: str, new_ref: str):
             replace_all_references(item, base_ref, new_ref)
 
 
+def convert_ref_to_jsonptr(ref: str) -> str:
+    return '$' + ref.replace('#', '').replace('/', '.')
+
+
 def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
     try:
         json_path_expr = parse(jsonp)
