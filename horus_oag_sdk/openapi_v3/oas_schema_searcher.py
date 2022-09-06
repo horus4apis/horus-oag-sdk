@@ -1,3 +1,5 @@
+from jsonpath_ng import parse
+
 
 def search_reference_content(oas_input: dict, ref: str) -> dict or None:
     ref = ref.lstrip('#/')
@@ -22,3 +24,15 @@ def replace_all_references(oas_input: dict, base_ref: str, new_ref: str):
     elif isinstance(oas_input, list):
         for item in oas_input:
             replace_all_references(item, base_ref, new_ref)
+
+
+def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
+    try:
+        json_path_expr = parse(jsonp)
+        position = json_path_expr.find(oas_input)
+
+        for sample_key, sample_value in value.items():
+            position[0].value[sample_key] = sample_value
+
+    except Exception as e:
+        print(f"Error finding json path {jsonp}")

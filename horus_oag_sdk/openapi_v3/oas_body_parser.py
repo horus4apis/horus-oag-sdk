@@ -78,7 +78,7 @@ def guess_body_type(raw_boyd: str, headers: dict) -> str or None:
             try:
                 read_json(raw_boyd)
             except Exception as e:
-                write_to_stderr("Error parsing json body: {}".format(e))
+                write_to_stderr(f"Error parsing json body: {raw_boyd}")
             else:
                 return 'application/json'
         elif 'application/x-www-form-urlencoded' in content_type:
