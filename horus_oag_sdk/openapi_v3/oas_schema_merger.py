@@ -1,3 +1,4 @@
+from powerful_pipes import write_to_stderr
 
 from .oas_schema_searcher import search_reference_content, replace_all_references
 
@@ -22,8 +23,7 @@ def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
         merged_schema['type'] = base_schema['type']
 
     if base_schema['type'] != merged_schema['type']:
-        print(f"Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
-        #raise OasMergerException(f"Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
+        write_to_stderr(f"Warning: Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
 
     if not_null:
         if base_schema['type'] == 'object':
