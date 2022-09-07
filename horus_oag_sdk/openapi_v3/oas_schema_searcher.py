@@ -37,7 +37,7 @@ def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
 
         for sample_key, sample_value in value.items():
 
-            position[0].value[sample_key] = f"\"{sample_value}\""
+            position[0].value[sample_key] = sample_value
 
     except Exception as e:
         print(f"Error finding json path {jsonp}")
