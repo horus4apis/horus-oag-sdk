@@ -8,6 +8,10 @@ def get_method(oas: dict, path: str, method: str) -> dict:
     return oas.get('paths', {}).get(path, {}).get(method, {})
 
 
+def get_responses(oas: dict, path: str, method: str) -> dict:
+    return oas.get('paths', {}).get(path, {}).get(method, {}).get('responses', {})
+
+
 def get_oas_parameters(oas: dict, path: str, method: str) -> list:
     return oas.get('paths', {}).get(path, {}).get(method, {}).get('parameters', [])
 
