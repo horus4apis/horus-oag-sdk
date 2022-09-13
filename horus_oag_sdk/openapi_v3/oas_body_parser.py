@@ -1,6 +1,6 @@
-from powerful_pipes import read_json, write_to_stderr
 from urllib.parse import parse_qsl
-from requests_toolbelt.multipart import decoder
+
+from powerful_pipes import read_json, write_to_stderr
 
 class OasParserException(Exception):
     ...
