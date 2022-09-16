@@ -1,4 +1,19 @@
 
+def same_content(content_1: dict, content_2: dict) -> bool:
+    """Compare two contents and return True if they are EQUIVALENT"""
+
+    if len(content_1) != len(content_2):
+        return False
+
+    for content_type in content_1:
+        if not content_type in content_2:
+            return False
+
+        if not same_schema(content_1[content_type], content_2[content_type]):
+            return False
+
+    return True
+
 
 def same_schema(sch1: dict, sch2: dict) -> bool:
     """Compare two schemas and return True if they are EQUIVALENT"""
