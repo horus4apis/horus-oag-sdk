@@ -50,9 +50,16 @@ def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
     if 'nullable' in merged_schema:
         base_schema['nullable'] = True
 
-    return base_schema
+    # merge required list
+    base_required = base_schema.get("required", [])
+    merged_required = merged_schema.get("required", [])
+    new_required = base_required + list(set(merged_required) - set(base_required))
+    if len(new_required) > 0:
+        base_schema['required'] = new_required
 
-#TODO list:
-    # merge required object list
-    # preserve non generated schema names
     # merge extensions
+    for key, value in merged_schema.items():
+        if key.startswith("x-"):
+            base_schema[key] = value
+
+    return base_schema

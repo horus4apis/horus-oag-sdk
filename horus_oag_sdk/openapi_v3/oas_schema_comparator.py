@@ -1,5 +1,7 @@
 from .oas_schema_searcher import search_reference_content
 
+import collections
+
 
 def same_content(oas: dict, content_1: dict, content_2: dict) -> bool:
     """Compare two contents and return True if they are EQUIVALENT"""
@@ -37,6 +39,11 @@ def same_schema(oas: dict, sch1: dict, sch2: dict) -> bool:
 
     if sch1['type'] != sch2['type']:
         return False
+
+    # compare required object
+    if collections.Counter(sch1.get("required", [])) != collections.Counter(sch2.get("required", [])):
+        return False
+
 
     if sch1['type'] == 'object':
         properties_1 = sch1.get('properties', {})
