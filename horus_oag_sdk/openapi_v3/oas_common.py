@@ -32,8 +32,21 @@ def get_schemas(oas: dict) -> dict:
     return oas.get('components', {}).get('schemas', {})
 
 
+def set_empty_components(oas: dict):
+    if not 'components' in oas:
+        oas['components'] = {}
+
+
+def set_empty_schemas(oas: dict):
+    set_empty_components(oas)
+    if not 'schemas' in oas['components']:
+        oas['components']['schemas'] = {}
+
+
 def set_empty_security_schemes(oas: dict):
-    oas['components']['securitySchemes'] = {}
+    set_empty_components(oas)
+    if not 'securitySchemes' in oas['components']:
+        oas['components']['securitySchemes'] = {}
 
 
 def get_security_schemes(oas: dict) -> dict:
