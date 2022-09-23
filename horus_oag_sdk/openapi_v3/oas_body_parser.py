@@ -1,23 +1,24 @@
+import logging
+
 from urllib.parse import parse_qsl
 
 from powerful_pipes import read_json, write_to_stderr
 
-class OasParserException(Exception):
-    ...
+from .oas_schema_merger import merge_schemas
 
 
-def parse_body(raw, request_type: str = 'undefined') -> dict:
+def parse_body(oas: dict, raw, request_type: str = 'undefined') -> dict:
     """ create a new schema """
     schema = {}
     if request_type == 'application/json':
         raw = read_json(raw)
-        schema = parse_json_body(raw)
+        schema = parse_json_body(oas, raw)
     elif request_type == 'application/x-www-form-urlencoded':
         parsed_urlencoded = parse_qsl(raw)
         json_schema = {}
         for key, value in parsed_urlencoded:
             json_schema[key] = value
-        schema = parse_json_body(json_schema)
+        schema = parse_json_body(oas, json_schema)
     elif request_type == 'multipart/form-data':
         ...  # TODO https://julien.danjou.info/handling-multipart-form-data-python/
     elif request_type == 'text/plain':
@@ -27,7 +28,7 @@ def parse_body(raw, request_type: str = 'undefined') -> dict:
     return schema
 
 
-def parse_json_body(raw) -> dict:
+def parse_json_body(oas: dict, raw) -> dict:
     """ create a new json schema"""
     schema = {}
 
@@ -40,14 +41,19 @@ def parse_json_body(raw) -> dict:
             schema['properties'] = {}
             schema['required'] = []
             for key, value in raw.items():
-                schema['properties'][key] = parse_json_body(value)
+                schema['properties'][key] = parse_json_body(oas, value)
                 schema['required'].append(key)
 
     elif raw_type in (list, tuple, set):
         schema['type'] = 'array'
         if raw:
-            # TODO: provisional, an array can have different schemas in different positions
-            schema['items'] = parse_json_body(raw[0])
+            items = parse_json_body(oas, raw[0])
+            for raw_component in raw:
+                try:
+                    items = merge_schemas(items, parse_json_body(oas, raw_component), oas)
+                except Exception as e:
+                    logging.warning(f"Error merging schemas: {e}")
+            schema['items'] = items
         else:
             schema['items'] = {}
     else:
@@ -67,7 +73,7 @@ def parse_base_body(value) -> str:
     try:
         return return_types[type(value).__name__]
     except KeyError:
-        raise OasParserException('Unsupported type')
+        raise Exception('Unsupported type')
 
 
 def guess_body_type(raw_boyd: str, headers: dict) -> str or None:
