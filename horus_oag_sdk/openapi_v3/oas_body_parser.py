@@ -57,7 +57,10 @@ def parse_json_body(oas: dict, raw) -> dict:
         else:
             schema['items'] = {}
     else:
-        schema['type'] = parse_base_body(raw)
+        if raw is None:
+            schema["nullable"] = True
+        else:
+            schema['type'] = parse_base_body(raw)
 
     return schema
 

@@ -1,3 +1,5 @@
+import logging
+
 from powerful_pipes import write_to_stderr
 
 from .oas_schema_searcher import search_reference_content, replace_all_references
@@ -10,23 +12,23 @@ def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
     if '$ref' in merged_schema:
         merged_schema = search_reference_content(oas, merged_schema['$ref'])
 
-    not_null = True
+    null = False
     if not 'type' in base_schema and not 'type' in merged_schema:
-        not_null = False
+        null = True
     elif not 'type' in base_schema:
         base_schema['type'] = merged_schema['type']
     elif not 'type' in merged_schema:
         merged_schema['type'] = base_schema['type']
 
-    if base_schema['type'] != merged_schema['type']:
-        if base_schema['type'] == 'integer' and merged_schema['type'] == 'number':
-            base_schema['type'] = 'number'
-        elif base_schema['type'] == 'number' and merged_schema['type'] == 'integer':
-            merged_schema['type'] = 'number'
-        else:
-            write_to_stderr(f"Warning: Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
+    if not null:
+        if base_schema['type'] != merged_schema['type']:
+            if base_schema['type'] == 'integer' and merged_schema['type'] == 'number':
+                base_schema['type'] = 'number'
+            elif base_schema['type'] == 'number' and merged_schema['type'] == 'integer':
+                merged_schema['type'] = 'number'
+            else:
+                write_to_stderr(f"Warning: Cannot merge schemas with different types, base schema of type {base_schema['type']} and new schema of type {merged_schema['type']}")
 
-    if not_null:
         if base_schema['type'] == 'object':
 
             # create properties object if not exists
@@ -50,6 +52,10 @@ def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
     # merge nullable property
     if 'nullable' in merged_schema:
         base_schema['nullable'] = True
+
+    # merge additional properties property
+    if 'additionalProperties' in merged_schema:
+        base_schema['additionalProperties'] = merged_schema['additionalProperties']
 
     # merge required list
     base_required = base_schema.get("required", [])
