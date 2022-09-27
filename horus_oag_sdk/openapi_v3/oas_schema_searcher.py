@@ -1,3 +1,5 @@
+import logging
+
 from jsonpath_ng import parse
 
 
@@ -40,4 +42,4 @@ def insert_with_jsonp(oas_input: dict, jsonp: str, value: dict):
             position[0].value[sample_key] = sample_value
 
     except Exception as e:
-        print(f"Error finding json path {jsonp}")
+        logging.error(f"Error finding json path {jsonp} in OAS: {e}")
