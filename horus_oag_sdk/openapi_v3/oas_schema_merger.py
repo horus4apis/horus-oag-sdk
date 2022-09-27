@@ -1,5 +1,3 @@
-import logging
-
 from powerful_pipes import write_to_stderr
 
 from .oas_schema_searcher import search_reference_content, replace_all_references
@@ -60,7 +58,7 @@ def merge_schemas(base_schema: dict, merged_schema: dict, oas: dict):
     # merge required list
     base_required = base_schema.get("required", [])
     merged_required = merged_schema.get("required", [])
-    new_required = base_required + list(set(merged_required) - set(base_required))
+    new_required = list(set(base_required).intersection(merged_required)) # get common required properties
     if len(new_required) > 0:
         base_schema['required'] = new_required
 
