@@ -1,3 +1,6 @@
+from .oas_schema_searcher import search_reference_content
+
+
 def get_path(oas: dict, path: str) -> dict:
     return oas.get('paths', {}).get(path, {})
 
@@ -19,9 +22,15 @@ def get_request_schema(oas: dict, path: str, method: str, request_type: str) -> 
         (request_type, {}).get('schema', {})
 
 
-def get_response_schema(oas: dict, path: str, method: str, rc: str, response_type: str) -> dict:
-    return oas.get('paths', {}).get(path, {}).get(method, {}).get('responses', {}).get(rc, "0").get('content', {}).get \
-        (response_type, {}).get('schema', {})
+def get_response(oas: dict, path: str, method: str, rc: str) -> (dict, str): # return response, reference
+    response = oas.get('paths', {}).get(path, {}).get(method, {}).get('responses', {}).get(rc, {})
+    if '$ref' in response:
+        return search_reference_content(oas, response['$ref']), response['$ref']
+    return response, None
+
+
+def get_response_schema(response: dict, response_type: str) -> dict:
+    return response.get('content', {}).get(response_type, {}).get('schema', {})
 
 
 def get_components(oas: dict) -> dict:
