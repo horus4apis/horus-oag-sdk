@@ -17,9 +17,8 @@ def get_oas_parameters(oas: dict, path: str, method: str) -> list:
     return oas.get('paths', {}).get(path, {}).get(method, {}).get('parameters', [])
 
 
-def get_request_schema(oas: dict, path: str, method: str, request_type: str) -> dict:
-    return oas.get('paths', {}).get(path, {}).get(method, {}).get('requestBody', {}).get('content', {}).get \
-        (request_type, {}).get('schema', {})
+def get_request_schema(request: dict, request_type: str) -> dict:
+    return request.get('content', {}).get(request_type, {}).get('schema', {})
 
 
 def get_response(oas: dict, path: str, method: str, rc: str) -> (dict, str): # return response, reference
@@ -27,6 +26,13 @@ def get_response(oas: dict, path: str, method: str, rc: str) -> (dict, str): # r
     if '$ref' in response:
         return search_reference_content(oas, response['$ref']), response['$ref']
     return response, None
+
+
+def get_request(oas: dict, path: str, method: str) -> (dict, str):
+    request_body = oas.get('paths', {}).get(path, {}).get(method, {}).get('requestBody', {})
+    if '$ref' in request_body:
+        return search_reference_content(oas, request_body['$ref']), request_body['$ref']
+    return request_body, None
 
 
 def get_response_schema(response: dict, response_type: str) -> dict:
@@ -56,6 +62,11 @@ def set_empty_security_schemes(oas: dict):
     set_empty_components(oas)
     if not 'securitySchemes' in oas['components']:
         oas['components']['securitySchemes'] = {}
+
+
+def set_empty_request_body(oas: dict, path: str, method: str):
+    if not 'requestBody' in oas['paths'][path][method]:
+        oas['paths'][path][method]['requestBody'] = {}
 
 
 def get_security_schemes(oas: dict) -> dict:
