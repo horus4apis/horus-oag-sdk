@@ -20,7 +20,7 @@ def get_request_schema(oas: dict, path: str, method: str, request_type: str) -> 
 
 
 def get_response_schema(oas: dict, path: str, method: str, rc: str, response_type: str) -> dict:
-    return oas.get('paths', {}).get(path, {}).get(method, {}).get('responses', {}).get(rc, {}).get('content', {}).get \
+    return oas.get('paths', {}).get(path, {}).get(method, {}).get('responses', {}).get(rc, "0").get('content', {}).get \
         (response_type, {}).get('schema', {})
 
 
