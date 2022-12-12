@@ -8,7 +8,7 @@ list_operator = '~LIST~'  # followed by index
 parameter_operator = '~PARAM~'  # followed by dict with name and in
 
 
-def locate_openapi_position(obj: dict | list, location: str) -> dict:
+def locate_openapi_position(obj: dict | list, location: str) -> dict | list:
     if location.startswith(dict_operator):
 
         if "$ref" in obj:
