@@ -4,7 +4,7 @@ from .oas_schema_searcher import search_reference_content
 from .. import HorusOagSDKException
 
 dict_operator = '~DICT~'  # followed by dict key
-list_operator = '~LIST~'  # followed by index
+list_operator = '~LIST~'  # followed by index or by key (dict or str)
 parameter_operator = '~PARAM~'  # followed by dict with name and in
 
 
@@ -25,13 +25,23 @@ def locate_openapi_position(obj: dict | list, location: str, oas: dict) -> dict 
         location = location[len(list_operator):]
         list_index = location.split('~')[0]
 
-        if not list_index.isdigit():
-            raise HorusOagSDKException(f"Index {list_index} is not an integer")
+        if list_index.isdigit():
+            if not int(list_index) < len(obj):
+                raise HorusOagSDKException(f"Index {list_index} is out of bounds")
+            return locate_openapi_position(obj[int(list_index)], location[len(list_index):], oas)
 
-        if not int(list_index) < len(obj):
-            raise HorusOagSDKException(f"Index {list_index} is out of bounds")
+        elif list_index.startswith("{"):
+            keys = read_json(list_index)
+            for item in obj:
+                if type(item) == dict:
+                    if all(item.get(key) == value for key, value in keys.items()):
+                        return locate_openapi_position(item, location[len(list_index):], oas)
 
-        return locate_openapi_position(obj[int(list_index)], location[len(list_index):], oas)
+        else:
+            #TODO: implement string key search
+            raise HorusOagSDKException(f"Index {list_index} is not an integer or a dict")
+
+
     elif location.startswith(parameter_operator):
         location = location[len(parameter_operator):]
         dict_key = location.split('~')[0]
